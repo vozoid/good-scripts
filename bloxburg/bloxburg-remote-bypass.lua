@@ -1,7 +1,7 @@
 local remotes = {} -- define remotes table
 
 for _, v in next, getgc() do -- loop through lua garbage collection
-    if type(v) == "function" and islclosure(v) then -- check if is function and is an lua closure
+    if type(v) == "function" then -- check if is function and is an lua closure
         if getinfo(v).name == "remoteAdded" then -- check name
             local hashes = getupvalue(v, 1) -- grab hashes and remotes
             local types = getupvalue(getupvalue(v, 2), 1) -- grab types and hashes
