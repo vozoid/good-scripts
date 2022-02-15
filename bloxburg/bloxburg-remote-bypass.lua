@@ -1,21 +1,21 @@
-local remotes = {} -- define remotes table
+local remotes = {}
 
-for _, v in next, getgc() do -- loop through lua garbage collection
-    if type(v) == "function" then -- check if is function and is an lua closure
-        if getinfo(v).name == "remoteAdded" then -- check name
-            local hashes = getupvalue(v, 1) -- grab hashes and remotes
-            local types = getupvalue(getupvalue(v, 2), 1) -- grab types and hashes
-            for hash, type in next, types do -- loop through types
-                remotes[type:gsub("F_", "")] = hashes[hash] -- add type = remote to remotes table
+setmetatable(remotes, {
+    __newindex = function(t, k, v)
+        rawset(t, k:lower(), v)
+    end,
+    __index = function(t, k)
+        return rawget(t, k:lower())
+    end
+})
+
+for _, v in next, getgc() do
+    if type(v) == "function" then
+        if getinfo(v).name == "remoteAdded" then
+            local hashes = getupvalue(v, 1)
+            for hash, type in next, getupvalue(getupvalue(v, 2), 1) do
+                remotes[type:gsub("F_", "")] = hashes[hash]
             end
         end
     end
-end
-
-local function fire(type, data) -- fire remote events with type and arguments
-    remotes[type]:FireServer(data) -- go through the remotes table to find the correct remote to go with type and fire
-end
-
-local function invoke(type, data) -- invoke remote functions with type and arguments
-    remotes[type]:InvokeServer(data) -- go through the remotes table to find the correct remote to go with type and invoke
 end
