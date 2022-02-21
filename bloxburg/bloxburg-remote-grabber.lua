@@ -1,10 +1,23 @@
-local fireserver = require(game:GetService("ReplicatedStorage").Modules.DataManager).FireServer
-local get = getupvalue(fireserver, 4)
+local remotes = {}
 
-function fire(type, data)
-    return get(type):FireServer(data)
-end
+for _, v in next, getgc() do
+    if type(v) == "function" then
+        if getinfo(v).name == "remoteAdded" then
+            local hashes = getupvalue(v, 1)
+            
+            for hash, type in next, getupvalue(getupvalue(v, 2), 1) do
+                local remote = hashes[hash]
+                
+                remotes[type:gsub("F_", "")] = function(data) 
+                    if remote:IsA("RemoteEvent") then
+                        return remote:FireServer(data)
+                    elseif remote:IsA("RemoteFunction") then
+                        return remote:InvokeServer(data)
+                    end
+                end
+            end
 
-function invoke(type, data)
-    return get(type, true):InvokeServer(data)
+            break
+        end
+    end
 end
